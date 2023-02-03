@@ -26,8 +26,7 @@ class OrderProcessor
 		ob_start();
 		echo "Processing started, OrderId: {$order->order_id}\n";
 		$this->validator->validate($order);
-
-		if ($order->is_valid) {
+		if ($this->validator->isValid()) {
 			echo "Order is valid\n";
 			$this->addDeliveryCostLargeItem($order);
 			if ($order->is_manual) {
@@ -35,7 +34,7 @@ class OrderProcessor
 			} else {
 				echo "Order \"" . $order->order_id . "\" WILL BE PROCESSED AUTOMATICALLY\n";
 			}
-			$deliveryDetails = $this->orderDeliveryDetails->getDeliveryDetails(count($order->items));
+			$deliveryDetails = $this->orderDeliveryDetails::getDeliveryDetails(count($order->items));
 			$order->setDeliveryDetails($deliveryDetails);
 		} else {
 			echo "Order is invalid\n";
@@ -56,12 +55,12 @@ class OrderProcessor
 		}
 	}
 
-	public function printToFile($order)
+	private function printToFile($order)
 	{
 		$result = ob_get_contents();
 		ob_end_clean();
 
-		if ($order->is_valid) {
+		if ($this->validator->isValid()) {
 			$lines = explode("\n", $result);
 			$lineWithoutDebugInfo = [];
 			foreach ($lines as $line) {
@@ -72,7 +71,7 @@ class OrderProcessor
 		}
 
 		file_put_contents('orderProcessLog', @file_get_contents('orderProcessLog') . implode("\n", $lineWithoutDebugInfo ?? [$result] ));
-		if ($order->is_valid) {
+		if ($this->validator->isValid()) {
 			file_put_contents('result', @file_get_contents('result') . $order->order_id . '-' . implode(',', $order->items) . '-' . $order->deliveryDetails . '-' . ($order->is_manual ? 1 : 0) . '-' . $order->totalAmount . '-' . $order->name . "\n");
 		}
 	}

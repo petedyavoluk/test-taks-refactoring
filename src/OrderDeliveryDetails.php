@@ -8,6 +8,10 @@ namespace Orders;
 
 class OrderDeliveryDetails
 {
+    /**
+     * @param $productsCount
+     * @return string
+     */
 	public static function getDeliveryDetails($productsCount)
 	{
 		if ($productsCount > 1) {

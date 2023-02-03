@@ -62,8 +62,6 @@ class Order
 		$this->order_id = $order_id;
 	}
 
-	public $is_valid;
-
 	public function setDeliveryDetails($deliveryDetails)
 	{
 		$this->deliveryDetails = $deliveryDetails;

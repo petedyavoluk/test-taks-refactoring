@@ -7,6 +7,8 @@ class OrderValidator
 {
 	public $minimumAmount;
 
+    private $errors = [];
+
 	public function setMinimumAmount(int $amount)
 	{
 		$this->minimumAmount = $amount;
@@ -24,17 +26,27 @@ class OrderValidator
 	 */
     public function validate($order)
     {
-	    $is_valid = true;
-	    if (!is_string($order->name) || !(strlen($order->name) > 2) || !($order->totalAmount > 0) || $order->totalAmount < $this->minimumAmount) {
-		    $is_valid = false;
+        $this->errors = [];
+	    if (!is_string($order->name) || !(strlen($order->name) > 2)) {
+            $this->errors[] = 'Name is invalid';
+	    }
+
+	    if ( !($order->totalAmount > 0) || $order->totalAmount < $this->minimumAmount) {
+            $this->errors[] = 'Total amount is invalid';
 	    }
 
 	    foreach ($order->items as $item_id) {
 		    if (!is_int($item_id)) {
-			    $is_valid = false;
+                $this->errors[] = 'Order item is invalid';
 		    }
 	    }
+    }
 
-	    $order->is_valid = $is_valid;
+    public function getErrors(){
+        return $this->errors;
+    }
+
+    public function isValid(){
+        return count($this->errors) === 0;
     }
 }
