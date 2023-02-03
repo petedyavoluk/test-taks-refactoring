@@ -35,7 +35,7 @@ class OrderProcessor
 			} else {
 				echo "Order \"" . $order->order_id . "\" WILL BE PROCESSED AUTOMATICALLY\n";
 			}
-			$deliveryDetails = $ this->orderDeliveryDetails->getDeliveryDetails(count($order->items));
+			$deliveryDetails = $this->orderDeliveryDetails->getDeliveryDetails(count($order->items));
 			$order->setDeliveryDetails($deliveryDetails);
 		} else {
 			echo "Order is invalid\n";
