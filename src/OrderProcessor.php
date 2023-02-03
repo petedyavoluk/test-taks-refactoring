@@ -36,11 +36,19 @@ class OrderProcessor
 			}
 			$deliveryDetails = $this->orderDeliveryDetails::getDeliveryDetails(count($order->items));
 			$order->setDeliveryDetails($deliveryDetails);
+            $this->printOrder($order);
 		} else {
 			echo "Order is invalid\n";
 		}
 
-		$this->printToFile($order);
+        $log = ob_get_contents();
+        ob_end_clean();
+
+        if ($this->validator->isValid()) {
+            $log = $this->removeDebugInfo($log);
+        }
+
+		$this->printToFile($log);
 	}
 
 	/**
@@ -55,24 +63,36 @@ class OrderProcessor
 		}
 	}
 
-	private function printToFile($order)
+    /**
+     * @param $log
+     * @return void
+     */
+	private function printToFile($log)
 	{
-		$result = ob_get_contents();
-		ob_end_clean();
-
-		if ($this->validator->isValid()) {
-			$lines = explode("\n", $result);
-			$lineWithoutDebugInfo = [];
-			foreach ($lines as $line) {
-				if (strpos($line, 'Reason:') === false) {
-					$lineWithoutDebugInfo[] = $line;
-				}
-			}
-		}
-
-		file_put_contents('orderProcessLog', @file_get_contents('orderProcessLog') . implode("\n", $lineWithoutDebugInfo ?? [$result] ));
-		if ($this->validator->isValid()) {
-			file_put_contents('result', @file_get_contents('result') . $order->order_id . '-' . implode(',', $order->items) . '-' . $order->deliveryDetails . '-' . ($order->is_manual ? 1 : 0) . '-' . $order->totalAmount . '-' . $order->name . "\n");
-		}
+		file_put_contents('orderProcessLog', $log, FILE_APPEND);
 	}
+
+    /**
+     * @param $order
+     * @return void
+     */
+    private function printOrder($order){
+        file_put_contents('result', $order->order_id . '-' . implode(',', $order->items) . '-' . $order->deliveryDetails . '-'
+            . ($order->is_manual ? 1 : 0) . '-' . $order->totalAmount . '-' . $order->name . "\n", FILE_APPEND);
+    }
+
+    /**
+     * @param $log
+     * @return string
+     */
+    private function removeDebugInfo($log){
+        $lines = explode("\n", $log);
+        $lineWithoutDebugInfo = [];
+        foreach ($lines as $line) {
+            if (strpos($line, 'Reason:') === false) {
+                $lineWithoutDebugInfo[] = $line;
+            }
+        }
+        return implode("\n", $lineWithoutDebugInfo ?? [$log] );
+    }
 }
